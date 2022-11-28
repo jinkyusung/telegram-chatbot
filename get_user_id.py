@@ -35,6 +35,7 @@ def get_user_id(bot: telepot.Bot) -> str:
 
 if __name__ == '__main__':
     token = '5892893666:AAHtz2Hum9l_5Y3pgD0FfTX8wxSZdFLCKdc'
+
     test_bot = telepot.Bot(token)
     my_id = get_user_id(test_bot)
     for i in range(3):
