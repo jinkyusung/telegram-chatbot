@@ -1,7 +1,9 @@
 # Telegram chatbot
 > __Final Project2__ of Computational Math
+
 텔레그램 메신저를 이용하여 적절한 주제를 선택하여 봇을 제작하시오 (단순 Web Crawling 프로그램 지양).
-Conditions
+
+#### Conditions
 * 여러 정보(예, 날씨, 맛집, 교통정보, 바이오리듬, 주가, 부동산 시세 등)들 중에서
 하나를 선택한다.
 * 정보를 검색하기 위한 충분한 입력값들을 봇 기능에 삽입하여 입력 받는다. 단,
