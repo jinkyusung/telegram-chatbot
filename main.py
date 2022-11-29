@@ -78,46 +78,39 @@ def handle(msg):
         # class Escort
         if user_input == "/start":
             bot.sendMessage(
-                chat_id=chat_id,
-                parse_mode='Markdown',
-                text=Escort.welcome()
+                chat_id=chat_id, parse_mode='Markdown', text=Escort.welcome()
             )
 
         elif user_input == "/help":
             bot.sendMessage(
-                chat_id=chat_id,
-                parse_mode='Markdown',
-                text=Escort.help()
+                chat_id=chat_id, parse_mode='Markdown', text=Escort.help()
             )
 
         # class CrpytoList
         elif user_input == "/list":
             bot.sendMessage(
-                chat_id=chat_id,
-                parse_mode='Markdown',
-                text=CryptoList.welcome()
+                chat_id=chat_id, parse_mode='Markdown', text=CryptoList.welcome()
             )
             for prefix in CryptoList.get_prefix():
                 bot.sendMessage(
-                    chat_id=chat_id,
-                    parse_mode='Markdown',
-                    text=CryptoList.show(prefix),
-                    disable_web_page_preview=True
+                    chat_id=chat_id,parse_mode='Markdown', 
+                    text=CryptoList.show(prefix), disable_web_page_preview=True
                 )
             bot.sendMessage(
-                chat_id=chat_id,
-                parse_mode='Markdown',
-                text=CryptoList.goodbye()
+                chat_id=chat_id, parse_mode='Markdown', text=CryptoList.goodbye()
             )
-        else:   # In
+        
+        # invalid case
+        else:
             bot.sendMessage(
                 chat_id=chat_id,
                 parse_mode='Markdown',
                 text=Escort.invalid(user_input)
             )
 
+
 if __name__ == '__main__':
-    token = "5966138788:AAF8LRqcsTfWB6D6iuQyQZ7hWMH_R_mF6Gw"
+    token = ""
     bot = telepot.Bot(token)
     MessageLoop(bot, handle).run_as_thread()
     while 1:
