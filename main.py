@@ -5,8 +5,19 @@ import pybithumb
 import collections
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+
+from matplotlib.pyplot import title
+import matplotlib.figure as fig
+import requests
+import pandas as pd
+import mplfinance as mpf
+from datetime import datetime
+
+import os
+
 class Message:
     pass
+
 class Escort(Message):
     @staticmethod
     def get_user_name():
@@ -20,16 +31,49 @@ class Escort(Message):
         return msg
     @staticmethod
     def help():
-        msg = "You can control me by sending these\n*commands*:\n\n"\
-              + "*/list* : show all cryptocurrency list in bithumb\n"\
-                + "*/price (bitcoin name)* : show current price of bitcoin\nex) /price BTC\n"\
-                + "*/relation (bitcoin name)* : show top10 related of your bitcoin\nex) /relation BTC\n"
+        msg = "You can control me by sending these\n*commands*:\n"\
+                + "`()` are necessary arguments.\n\n"\
+                + "*/list* : show all cryptocurrency list in bithumb\n\n"\
+                + "*/price* `(code)` : show current price of cryptocurrency\nex) /price BTC\n\n"\
+                + "*/relation* `(code)` : show top10 related of your cryptocurrency\nex) /relation BTC\n\n"\
+                + "*/chart* `(code) (k) `\n: show *candlestickchart* of cryptocurrency last k (positive int) days.\n"
         return msg
     @staticmethod
     def invalid(user_input):
         msg = f"🚫*Error* : {user_input} is _invalid_ command.\n"\
             + "To see valid *commands*, sending */help*"
         return msg
+
+    @staticmethod
+    def invalid_code(code):
+        if not code:
+            msg = f"🚫*Error* : /chart `CODE` 👈 Plz input cryptocurrency code name into `CODE`.\n" \
+                  + "You can check all existing cryptocurrency code list by typing\n" \
+                  + "*/list*\n" \
+                  + "command."
+        else:
+            msg = f"🚫*Error* : /chart `{code}` 👈 `{code}` is Non-exist cryptocurrency code name.\n"\
+                + "Please input *existing cryptocurrency code name*.\n"\
+                + "You can check all existing cryptocurrency code list by typing\n"\
+                + "*/list*\n"\
+                + "command."
+        return msg
+
+
+class Chart(Message):
+    @staticmethod
+    def save_img(code, k=10):
+        df = pybithumb.get_ohlcv(code)
+        today = datetime.now()
+        all = len(df.index.to_list())
+        print(k, all)
+        r = min(1+k, all)
+        mpf.plot(df.iloc[all - r:all], volume=True,style='yahoo',type='candle', savefig=f"./{code}.png")
+        print(f'Chart img saved as {code}.png')
+        return
+
+
+
 class CryptoList(Message):
     @staticmethod
     def get_prefix(payment_currency='KRW'):
@@ -111,6 +155,8 @@ def percent(open_price):
     for i in range(len(open_price)-1):
         diff.append(100*(open_price[i+1]-open_price[i])/open_price[i])
     return diff
+
+
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     if content_type == "text":
@@ -161,6 +207,52 @@ def handle(msg):
                     parse_mode='Markdown',
                     text=Escort.invalid(user_input)
                 )
+
+        elif user_input[:6] == '/chart':
+            cmd = user_input[6:].split()
+
+            if not cmd:
+                bot.sendMessage(
+                    chat_id=chat_id,
+                    parse_mode='Markdown',
+                    text=Escort.invalid(user_input)
+                )
+
+            elif len(cmd) == 1:
+                payment_currency = 'KRW'
+                code = cmd[0]
+                if code in set(pybithumb.get_tickers(payment_currency)):
+                    Chart.save_img(code)
+                    bot.sendPhoto(chat_id, photo=open(f'{code}.png', 'rb'))
+                    file_path = f'{code}.png'
+                    os.remove(file_path)
+                else:
+                    bot.sendMessage(
+                        chat_id=chat_id,
+                        parse_mode='Markdown',
+                        text=Escort.invalid_code(code)
+                    )
+            elif len(cmd) == 2:
+                payment_currency = 'KRW'
+                code = cmd[0]
+                if code in set(pybithumb.get_tickers(payment_currency)) \
+                        and cmd[1].isdigit():
+                    Chart.save_img(code, int(cmd[1]))
+                    bot.sendPhoto(chat_id, photo=open(f'{code}.png', 'rb'))
+                    file_path = f'{code}.png'
+                    os.remove(file_path)
+                else:
+                    bot.sendMessage(
+                        chat_id=chat_id,
+                        parse_mode='Markdown',
+                        text=Escort.invalid(user_input)
+                    )
+            else:
+                bot.sendMessage(
+                    chat_id=chat_id,
+                    parse_mode='Markdown',
+                    text=Escort.invalid(user_input)
+                )
         # invalid case
         else:
             bot.sendMessage(
@@ -171,8 +263,7 @@ def handle(msg):
 
 
 if __name__ == '__main__':
-    token = ""
-
+    token = "5725633579:AAGi5WMEJ_7Dg0P4WXsQnIS_0uK1yae_Wiw"
     bot = telepot.Bot(token)
     MessageLoop(bot, handle).run_as_thread()
     while 1:
