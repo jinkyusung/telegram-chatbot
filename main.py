@@ -1,34 +1,35 @@
 import telepot
 from telepot.loop import MessageLoop
-import time
-import pybithumb
-import collections
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
-from matplotlib.pyplot import title
-import matplotlib.figure as fig
-import requests
-import pandas as pd
+import pybithumb
 import mplfinance as mpf
-from datetime import datetime
 
 import os
+import time
+import collections
+
 
 class Message:
     pass
 
+
 class Escort(Message):
+
     @staticmethod
     def get_user_name():
         resp: list = bot.getUpdates()
         return resp[0]['message']['from']['first_name']
+
     @staticmethod
     def welcome():
         msg = f"Hi👋, {Escort.get_user_name()}.\n" \
               + "I'm Cryptocurrency information bot.\n" \
               + "If you want to see all control *commands*, sending */help*"
         return msg
+
     @staticmethod
     def help():
         msg = "You can control me by sending these\n*commands*:\n"\
@@ -38,6 +39,7 @@ class Escort(Message):
                 + "*/relation* `(code)` : show top10 related of your cryptocurrency\nex) /relation BTC\n\n"\
                 + "*/chart* `(code) (k) `\n: show *candlestickchart* of cryptocurrency last k (positive int) days.\n"
         return msg
+
     @staticmethod
     def invalid(user_input):
         msg = f"🚫*Error* : {user_input} is _invalid_ command.\n"\
@@ -64,34 +66,35 @@ class Chart(Message):
     @staticmethod
     def save_img(code, k=10):
         df = pybithumb.get_ohlcv(code)
-        today = datetime.now()
         all = len(df.index.to_list())
-        print(k, all)
-        r = min(1+k, all)
-        mpf.plot(df.iloc[all - r:all], volume=True,style='yahoo',type='candle', savefig=f"./{code}.png")
+        mpf.plot(df.iloc[all - min(1+k, all):all], volume=True,style='yahoo',type='candle', savefig=f"./{code}.png")
         print(f'Chart img saved as {code}.png')
         return
 
 
-
 class CryptoList(Message):
+
     @staticmethod
     def get_prefix(payment_currency='KRW'):
         res = pybithumb.get_tickers(payment_currency)
         return sorted(set(map(lambda x: x[0], res)))
+
     @staticmethod
     def get_total_num(payment_currency='KRW'):
         res = pybithumb.get_tickers(payment_currency)
         return len(res)
+
     @staticmethod
     def welcome():
         msg = f"*[Cryptocurrency List in Bitumb]* _KRW_\n\n"
         return msg
+
     @staticmethod
     def goodbye():
         msg = "*Done!*\n"\
               + f"Total num : *{CryptoList.get_total_num()}*"
         return msg
+        
     @staticmethod
     def show(prefix, payment_currency='KRW'):
         res = pybithumb.get_tickers(payment_currency)
@@ -102,6 +105,7 @@ class CryptoList(Message):
         for name in name_dict[prefix]:
             msg += f"[{name}](https://www.bithumb.com/trade/order/{name}_{payment_currency})    "
         return msg
+
     @staticmethod
     def current_price(coin_name, payment_currency='KRW'):
         url = 'https://www.bithumb.com/trade/order/' + coin_name + '_'+ payment_currency
@@ -112,6 +116,7 @@ class CryptoList(Message):
         real_cur_price = bring_cur_price.find_element(By.TAG_NAME, 'h3').text
         msg = f"{coin_name}'s current price : {real_cur_price}\n"
         return msg
+    
     @staticmethod
     def relation_ranking(coin_name, res):
         con_key = ""
@@ -149,6 +154,7 @@ class CryptoList(Message):
                 msg += f"{rank} *{ticker}* {score} ({int(score*100/my_score)}%)\n"
         msg += f"-----------------------------\n(If it rises or falls with {coin_name} at the same time, score is high. - checking every minute)"
         return msg
+
 
 def percent(open_price):
     diff = []
@@ -207,17 +213,15 @@ def handle(msg):
                     parse_mode='Markdown',
                     text=Escort.invalid(user_input)
                 )
-
+        # class Chart
         elif user_input[:6] == '/chart':
             cmd = user_input[6:].split()
-
             if not cmd:
                 bot.sendMessage(
                     chat_id=chat_id,
                     parse_mode='Markdown',
                     text=Escort.invalid(user_input)
                 )
-
             elif len(cmd) == 1:
                 payment_currency = 'KRW'
                 code = cmd[0]
@@ -268,3 +272,4 @@ if __name__ == '__main__':
     MessageLoop(bot, handle).run_as_thread()
     while 1:
         time.sleep(10)
+        
