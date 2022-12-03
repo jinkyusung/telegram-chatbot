@@ -267,7 +267,7 @@ def handle(msg):
 
 
 if __name__ == '__main__':
-    token = "5725633579:AAGi5WMEJ_7Dg0P4WXsQnIS_0uK1yae_Wiw"
+    token = ""
     bot = telepot.Bot(token)
     MessageLoop(bot, handle).run_as_thread()
     while 1:
